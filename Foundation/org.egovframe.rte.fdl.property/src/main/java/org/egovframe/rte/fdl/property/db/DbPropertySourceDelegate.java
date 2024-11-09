@@ -27,6 +27,15 @@ import java.util.Map;
 /**
  * DB기반의 PropertySource를 저장하는 클래스
  * @author yjLee
+ * 
+ * <pre>
+ * 개정이력(Modification Information)
+ *
+ * 수정일		    수정자		수정내용
+ * ----------------------------------------------
+ * 				yjLee		최초 생성
+ * 2024.11.09	양재준		비효율적인 소스코드 제거
+ * </pre>
  */
 public class DbPropertySourceDelegate {
 
@@ -47,30 +56,29 @@ public class DbPropertySourceDelegate {
 
 	public void initProperties() {
 		List<Map<String, Object>> result = jdbcTemplate.queryForList(sql);
-		if (result != null) {
-			for (int inx = 0; inx < result.size(); inx++) {
-				Map<String, Object> property = result.get(inx);
-				if (property != null) {
-					Iterator<String> iterator = property.keySet().iterator();
-					String pKey = null;
-					String pValue = null;
-					while (iterator.hasNext()) {
-						String key = (String) iterator.next();
-						String data = (String) property.get(key);
-						if (PROPERTY_SOURCE_KEY.equals(key)) {
-							pKey = data;
-						} else if (PROPERTY_SOURCE_VALUE.equals(key)) {
-							pValue = data;
-						}
+
+		for (int inx = 0; inx < result.size(); inx++) {
+			Map<String, Object> property = result.get(inx);
+			if (property != null) {
+				Iterator<String> iterator = property.keySet().iterator();
+				String pKey = null;
+				String pValue = null;
+				while (iterator.hasNext()) {
+					String key = iterator.next();
+					String data = (String) property.get(key);
+					if (PROPERTY_SOURCE_KEY.equals(key)) {
+						pKey = data;
+					} else if (PROPERTY_SOURCE_VALUE.equals(key)) {
+						pValue = data;
 					}
-					properties.put(pKey, pValue);
 				}
+				properties.put(pKey, pValue);
 			}
 		}
 	}
 
 	public Object getProperty(String key) {
-		return this.properties.get((String) key);
+		return this.properties.get(key);
 	}
 
 }
