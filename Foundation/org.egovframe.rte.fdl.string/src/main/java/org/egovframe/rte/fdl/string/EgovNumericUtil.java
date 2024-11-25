@@ -45,6 +45,7 @@ import java.math.RoundingMode;
  * ----------------------------------------------
  * 2009.06.01	윤성종			최초 생성
  * 2023.08.31   ESFC			숫자 반올림/올림/내림에 RoundingMode 적용(Contribution 반영)
+ * 2024.11.25   양재준          Double @Deprecated 된 new Double() 생성자 대신, Double.valueOf() 사용으로 변경
  * </pre>
  */
 public class EgovNumericUtil {
@@ -90,7 +91,7 @@ public class EgovNumericUtil {
 		}
 
 		try {
-			Double db = new Double(source);
+			Double db = Double.valueOf(source);
 			return !db.isNaN();
 		} catch (NumberFormatException ex) {
 			return false;
