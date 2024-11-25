@@ -28,6 +28,7 @@ import org.egovframe.rte.fdl.cmmn.exception.BaseException;
 import org.egovframe.rte.fdl.excel.EgovExcelMapping;
 import org.egovframe.rte.fdl.excel.EgovExcelService;
 import org.egovframe.rte.fdl.filehandling.EgovFileUtil;
+import org.egovframe.rte.fdl.logging.util.EgovJdkLogger;
 import org.egovframe.rte.fdl.string.EgovObjectUtil;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.slf4j.Logger;
@@ -61,6 +62,7 @@ import java.util.Locale;
  * 2014.05.14  이기하				코드 refactoring 및 mybatis 서비스 추가
  * 2017.02.15  장동한				ES-부적절한 예외 처리[CWE-253, CWE-440, CWE-754]
  * 2020.08.31  ESFC				ES-부적절한 예외 처리[CWE-253, CWE-440, CWE-754]
+ * 2024.11.26  양재준				ES-부적절한 자원 해제[CWE-404]
  * </pre>
  */
 public class EgovExcelServiceImpl implements EgovExcelService, ApplicationContextAware {
@@ -143,16 +145,18 @@ public class EgovExcelServiceImpl implements EgovExcelService, ApplicationContex
 			LOGGER.debug("make dir {}", FilenameUtils.getFullPath(fullFileName));
 			FileUtils.forceMkdir(new File(FilenameUtils.getFullPath(fullFileName)));
         }
-        FileOutputStream fileOut = null;
+		
         LOGGER.debug("EgovExcelServiceImpl.createWorkbook 2 : templatePath is {}", fullFileName);
-		try {
+		try (FileOutputStream fos = new FileOutputStream(fullFileName)) {
             LOGGER.debug("ExcelServiceImpl filepath ...");
-			fileOut = new FileOutputStream(fullFileName);
-			wb.write(fileOut);
+			wb.write(fos);
         } finally {
-            LOGGER.debug("ExcelServiceImpl loadExcelObject end...");
-            if (wb != null) wb.close();;
-			if (fileOut != null) fileOut.close();
+			try {
+				if (wb != null) wb.close();
+			} catch (IOException e) {
+				EgovJdkLogger.ignore("Occurred Exception to close resource is ignored.");
+			}
+			LOGGER.debug("ExcelServiceImpl createWorkbook end...");
         }
         return wb;
     }
@@ -164,17 +168,18 @@ public class EgovExcelServiceImpl implements EgovExcelService, ApplicationContex
 	 * @throws Exception
 	 */
     public Workbook loadExcelTemplate(String templateName) throws IOException {
-        FileInputStream fileIn = null;
 		Workbook wb = null;
         LOGGER.debug("EgovExcelServiceImpl.loadExcelTemplate : templatePath is {}", templateName);
-        try {
+        try (FileInputStream fis = new FileInputStream(templateName)) {
             LOGGER.debug("ExcelServiceImpl loadExcelTemplate ...");
-			fileIn = new FileInputStream(templateName);
-            wb = new HSSFWorkbook(fileIn);
+            wb = new HSSFWorkbook(fis);
         } finally {
-            LOGGER.debug("ExcelServiceImpl loadExcelTemplate end...");
-			if (wb != null) wb.close();
-			if (fileIn != null) fileIn.close();
+			try {
+				if (wb != null) wb.close();
+			} catch (IOException e) {
+				EgovJdkLogger.ignore("Occurred Exception to close resource is ignored.");
+			}
+			LOGGER.debug("ExcelServiceImpl loadExcelTemplate end...");
         }
         return wb;
     }
@@ -187,16 +192,17 @@ public class EgovExcelServiceImpl implements EgovExcelService, ApplicationContex
 	 * @throws Exception
 	 */
     public XSSFWorkbook loadExcelTemplate(String templateName, XSSFWorkbook wb) throws IOException {
-    	FileInputStream fileIn = null;
     	LOGGER.debug("EgovExcelServiceImpl.loadExcelTemplate(XSSF) : templatePath is {}", templateName);
-    	try {
+    	try (FileInputStream fis = new FileInputStream(templateName)) {
     		LOGGER.debug("ExcelServiceImpl loadExcelTemplate(XSSF) ...");
-			fileIn = new FileInputStream(templateName);
-			wb = new XSSFWorkbook(fileIn);
+			wb = new XSSFWorkbook(fis);
     	} finally {
-    		LOGGER.debug("ExcelServiceImpl loadExcelTemplate(XSSF) end...");
-			if (wb != null) wb.close();
-			if (fileIn != null) fileIn.close();
+			try {
+				if (wb != null) wb.close();
+			} catch (IOException e) {
+				EgovJdkLogger.ignore("Occurred Exception to close resource is ignored.");
+			}
+			LOGGER.debug("ExcelServiceImpl loadExcelTemplate(XSSF) end...");
     	}
     	return wb;
     }
@@ -208,16 +214,12 @@ public class EgovExcelServiceImpl implements EgovExcelService, ApplicationContex
 	 * @throws Exception
 	 */
     public Workbook loadWorkbook(String filepath) throws IOException {
-    	FileInputStream fileIn = null;
-		Workbook wb = null;
-		try {
-			fileIn = new FileInputStream(filepath);
-			wb = loadWorkbook(fileIn);
-		} finally {
-			if (wb != null) wb.close();
-			if (fileIn != null) fileIn.close();
+		try (
+			FileInputStream fis = new FileInputStream(filepath);
+			Workbook wb = loadWorkbook(fis);
+		) {
+			return wb;
 		}
-		return wb;
     }
 
     /**
@@ -228,13 +230,14 @@ public class EgovExcelServiceImpl implements EgovExcelService, ApplicationContex
      * @throws Exception
      */
     public XSSFWorkbook loadWorkbook(String filepath, XSSFWorkbook wb) throws BaseException, IOException {
-    	FileInputStream fileIn = null;
-		try {
-			fileIn = new FileInputStream(filepath);
-			wb = loadWorkbook(fileIn, wb);
+		try (FileInputStream fis = new FileInputStream(filepath)) {
+			wb = loadWorkbook(fis, wb);
 		} finally {
-			if (wb != null) wb.close();
-			if (fileIn != null) fileIn.close();
+			try {
+				if (wb != null) wb.close();
+			} catch (IOException e) {
+				EgovJdkLogger.ignore("Occurred Exception to close resource is ignored.");
+			}
 		}
     	return wb;
     }
@@ -246,18 +249,19 @@ public class EgovExcelServiceImpl implements EgovExcelService, ApplicationContex
 	 * @throws Exception
 	 */
 	public Workbook loadWorkbook(InputStream fileIn) throws IOException {
-		POIFSFileSystem fs = null;
-		Workbook wb = null;
-		try {
+		try (
+			POIFSFileSystem fs = new POIFSFileSystem(fileIn);
+			Workbook wb = new HSSFWorkbook(fs);
+		) {
 			LOGGER.debug("ExcelServiceImpl loadWorkbook ...");
-			fs = new POIFSFileSystem(fileIn);
-			wb = new HSSFWorkbook(fs);
+			return wb;
 		} finally {
-			if (wb != null) wb.close();
-			if (fs != null) fs.close();
-			if (fileIn != null) fileIn.close();
+			try {
+				if (fileIn != null) fileIn.close();
+			} catch (IOException e) {
+				EgovJdkLogger.ignore("Occurred Exception to close resource is ignored.");
+			}
 		}
-		return wb;
     }
 
 	/**
