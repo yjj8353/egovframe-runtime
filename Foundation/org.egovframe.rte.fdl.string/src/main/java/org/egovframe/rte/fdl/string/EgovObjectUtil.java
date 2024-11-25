@@ -40,6 +40,7 @@ import java.util.Optional;
  * ----------------------------------------------
  * 2009.06.01	윤성종			최초 생성
  * 2023.08.31   ESFC			기능 추가(isEmpty(), Contribution 반영)
+ * 2024.11.25   양재준			불필요한 주석 및 소스 제거
  * </pre>
  */
 public final class EgovObjectUtil {
@@ -141,8 +142,7 @@ public final class EgovObjectUtil {
      * @return Null인경우 true / Null이 아닌경우 false
      */
     public static boolean isNull(Object object) {
-        //return ((object == null) || object.equals(null));
-		return (object == null) ? true : false;
+		return object == null;
     }
 
 	/**
@@ -150,19 +150,20 @@ public final class EgovObjectUtil {
 	 * @param obj
 	 * @return Null/비어있는경우 true / Null이 아니거나 데이터가 있는경우 false
 	 */
+	@SuppressWarnings("rawtypes")
 	public static boolean isEmpty(@Nullable Object obj) {
 		if (obj == null) {
 			return true;
 		} else if (obj instanceof Optional) {
-			return !((Optional)obj).isPresent();
+			return !((Optional) obj).isPresent();
 		} else if (obj instanceof CharSequence) {
-			return ((CharSequence)obj).length() == 0;
+			return ((CharSequence) obj).length() == 0;
 		} else if (obj.getClass().isArray()) {
 			return Array.getLength(obj) == 0;
 		} else if (obj instanceof Collection) {
-			return ((Collection)obj).isEmpty();
+			return ((Collection) obj).isEmpty();
 		} else {
-			return obj instanceof Map ? ((Map)obj).isEmpty() : false;
+			return obj instanceof Map && ((Map) obj).isEmpty();
 		}
 	}
 

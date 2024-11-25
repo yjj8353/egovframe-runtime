@@ -10,6 +10,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.junit.Assert.*;
 
@@ -56,13 +58,21 @@ public class EgovObjectUtilTest {
 	 * @throws Exception
 	 */
 	@Test
-	public void testIsEmpty() throws Exception{
+	public void testIsEmpty() throws Exception {
 		ArrayList<String> list = new ArrayList<>();
 		list.add("12124");
 
 		assertFalse(EgovObjectUtil.isEmpty(new Object()));
 		assertTrue(EgovObjectUtil.isEmpty(null));
 		assertFalse(EgovObjectUtil.isEmpty(list));
+
+		// EgovObjectUtil.isEmpty() Map 자료형 검증을 위한 테스트코드 추가
+		Map<String, Object> map = null;
+		assertTrue(EgovObjectUtil.isEmpty(map));
+		
+		map = new HashMap<>();
+		map.put("key", "value");
+		assertFalse(EgovObjectUtil.isEmpty(map));
 	}
 
 	/**
