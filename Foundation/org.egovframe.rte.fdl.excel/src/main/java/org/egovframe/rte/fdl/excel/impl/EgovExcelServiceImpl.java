@@ -61,7 +61,7 @@ import java.util.Locale;
  * 2014.05.14  이기하				코드 refactoring 및 mybatis 서비스 추가
  * 2017.02.15  장동한				ES-부적절한 예외 처리[CWE-253, CWE-440, CWE-754]
  * 2020.08.31  ESFC				ES-부적절한 예외 처리[CWE-253, CWE-440, CWE-754]
- * 2024.11.26  양재준				ES-부적절한 자원 해제[CWE-404], 명시적인 @Override 어노테이션 추가, 불필요한 예외 던지기 제거
+ * 2024.11.26  양재준				ES-부적절한 자원 해제[CWE-404], 명시적인 @Override 어노테이션 추가, 불필요한 예외 던지기 제거, 광범위한 예외 던지기 처리
  * </pre>
  */
 public class EgovExcelServiceImpl implements EgovExcelService, ApplicationContextAware {

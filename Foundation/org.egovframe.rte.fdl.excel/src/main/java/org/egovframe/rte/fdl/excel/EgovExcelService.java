@@ -19,6 +19,7 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
+import java.io.IOException;
 import java.io.InputStream;
 
 /**
@@ -37,6 +38,7 @@ import java.io.InputStream;
  * 2009.06.01	윤성종				최초 생성
  * 2013.05.22	이기하				XSSF, SXSSF 형식 추가
  * 2014.05.14	이기하				XSSF형식 구분자 추가 및 workbook으로 변경
+ * 2024.11.26  양재준				광범위한 예외 던지기 처리
  * </pre>
  */
 public interface EgovExcelService {
@@ -47,18 +49,18 @@ public interface EgovExcelService {
 	 * @param wb
 	 * @param filepath
 	 * @return
-	 * @throws Exception
+	 * @throws IOException
 	 */
-	public Workbook createWorkbook(Workbook wb, String filepath) throws Exception;
+	public Workbook createWorkbook(Workbook wb, String filepath) throws IOException;
 
 	/**
 	 * 엑셀 Template를 로딩하여 엑셀파일을 생성한다.
 	 * 
 	 * @param templateName
 	 * @return
-	 * @throws Exception
+	 * @throws IOException
 	 */
-	public Workbook loadExcelTemplate(String templateName) throws Exception;
+	public Workbook loadExcelTemplate(String templateName) throws IOException;
 
 	/**
 	 * xlsx 엑셀 Template를 로딩하여 엑셀파일을 생성한다.
@@ -66,18 +68,18 @@ public interface EgovExcelService {
 	 * @param templateName
 	 * @param type
 	 * @return
-	 * @throws Exception
+	 * @throws IOException
 	 */
-	public XSSFWorkbook loadExcelTemplate(String templateName, XSSFWorkbook type) throws Exception;
+	public XSSFWorkbook loadExcelTemplate(String templateName, XSSFWorkbook type) throws IOException;
 
 	/**
 	 * 엑셀 파일을 로딩한다.
 	 * 
 	 * @param filepath
 	 * @return
-	 * @throws Exception
+	 * @throws IOException
 	 */
-	public Workbook loadWorkbook(String filepath) throws Exception;
+	public Workbook loadWorkbook(String filepath) throws IOException;
 
 	/**
 	 * xlsx 엑셀 파일을 로딩한다.
@@ -85,18 +87,18 @@ public interface EgovExcelService {
 	 * @param filepath
 	 * @param type
 	 * @return
-	 * @throws Exception
+	 * @throws IOException
 	 */
-	public XSSFWorkbook loadWorkbook(String filepath, XSSFWorkbook type) throws Exception;
+	public XSSFWorkbook loadWorkbook(String filepath, XSSFWorkbook type) throws IOException;
 
 	/**
 	 * 엑셀 파일을 로딩한다.
 	 * 
 	 * @param fileIn
 	 * @return
-	 * @throws Exception
+	 * @throws IOException
 	 */
-	public Workbook loadWorkbook(InputStream fileIn) throws Exception;
+	public Workbook loadWorkbook(InputStream fileIn) throws IOException;
 
 	/**
 	 * xlsx 엑셀 파일을 로딩한다.
@@ -104,9 +106,9 @@ public interface EgovExcelService {
 	 * @param fileIn
 	 * @param type
 	 * @return
-	 * @throws Exception
+	 * @throws IOException
 	 */
-	public XSSFWorkbook loadWorkbook(InputStream fileIn, XSSFWorkbook type) throws Exception;
+	public XSSFWorkbook loadWorkbook(InputStream fileIn, XSSFWorkbook type) throws IOException;
 
 	/**
 	 * 엑셀파일을 업로드하여 DB에 일괄저장한다.<br/>
