@@ -41,7 +41,7 @@ import java.util.Map;
  * 수정일		수정자				수정내용
  * ----------------------------------------------
  * 2019.10.01	ESFC            최초 생성
- * 2024.11.26	양재준            광범위한 예외 던지기 수정
+ * 2024.11.26	양재준            광범위한 예외 던지기 수정, 비효율적인 소스코드 수정
  * </pre>
  */
 public class EgovAccessDao implements ApplicationContextAware {
@@ -80,14 +80,12 @@ public class EgovAccessDao implements ApplicationContextAware {
 
     public List<Map<String, Object>> getAuthorityUser() throws DataAccessException {
         LOGGER.debug("##### EgovAccessDao getAuthorityUser >>> {} ", getAuthorityUserQuery());
-        List<Map<String, Object>> list = this.jdbcTemplate.queryForList(getAuthorityUserQuery());
-        return list;
+        return this.jdbcTemplate.queryForList(getAuthorityUserQuery());
     }
 
     public List<Map<String, Object>> getRoleAndUrl() throws DataAccessException {
         LOGGER.debug("##### EgovAccessDao getRoleAndUrl >>> {} ", getRoleAndUrlQuery());
-        List<Map<String, Object>> list = this.jdbcTemplate.queryForList(getRoleAndUrlQuery());
-        return list;
+        return this.jdbcTemplate.queryForList(getRoleAndUrlQuery());
     }
 
 }
