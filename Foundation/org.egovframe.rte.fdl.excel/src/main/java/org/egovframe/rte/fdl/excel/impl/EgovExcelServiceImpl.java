@@ -61,7 +61,7 @@ import java.util.Locale;
  * 2014.05.14  이기하				코드 refactoring 및 mybatis 서비스 추가
  * 2017.02.15  장동한				ES-부적절한 예외 처리[CWE-253, CWE-440, CWE-754]
  * 2020.08.31  ESFC				ES-부적절한 예외 처리[CWE-253, CWE-440, CWE-754]
- * 2024.11.26  양재준				ES-부적절한 자원 해제[CWE-404], 명시적인 @Override 어노테이션 추가, 불필요한 예외 던지기 제거, 광범위한 예외 던지기 처리
+ * 2024.11.26  양재준				ES-부적절한 자원 해제[CWE-404], 명시적인 @Override 어노테이션 추가, 불필요한 예외 던지기 제거, 광범위한 예외 던지기 처리, 비효율적인 소스코드 수정
  * </pre>
  */
 public class EgovExcelServiceImpl implements EgovExcelService, ApplicationContextAware {
@@ -137,10 +137,11 @@ public class EgovExcelServiceImpl implements EgovExcelService, ApplicationContex
 	@Override
     public Workbook createWorkbook(Workbook wb, String filepath) throws IOException {
         String fullFileName = filepath;
-        LOGGER.debug("EgovExcelServiceImpl.createWorkbook 1 : templatePath is {}", FilenameUtils.getFullPath(fullFileName));
-        if (!EgovFileUtil.isExistsFile(FilenameUtils.getFullPath(fullFileName))) {
-			LOGGER.debug("make dir {}", FilenameUtils.getFullPath(fullFileName));
-			FileUtils.forceMkdir(new File(FilenameUtils.getFullPath(fullFileName)));
+		String fullPath = FilenameUtils.getFullPath(fullFileName);
+        LOGGER.debug("EgovExcelServiceImpl.createWorkbook 1 : templatePath is {}", fullPath);
+        if (!EgovFileUtil.isExistsFile(fullPath)) {
+			LOGGER.debug("make dir {}", fullPath);
+			FileUtils.forceMkdir(new File(fullPath));
         }
 		
         LOGGER.debug("EgovExcelServiceImpl.createWorkbook 2 : templatePath is {}", fullFileName);
