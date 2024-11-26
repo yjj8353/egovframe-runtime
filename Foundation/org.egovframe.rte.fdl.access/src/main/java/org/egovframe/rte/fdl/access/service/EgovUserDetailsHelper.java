@@ -42,6 +42,7 @@ import java.util.Map;
  * 수정일		수정자				수정내용
  * ----------------------------------------------
  * 2019.10.01	ESFC			최초 생성
+ * 2024.11.26	양재준			@Deprecated된 메서드 변경
  * </pre>
  */
 public class EgovUserDetailsHelper {
@@ -62,7 +63,7 @@ public class EgovUserDetailsHelper {
 		} else {
 			String accessUser = (String) RequestContextHolder.getRequestAttributes().getAttribute("accessUser", RequestAttributes.SCOPE_SESSION);
 			List<Map<String, Object>> listmap = AuthorityResourceMetadata.getAuthorityList();
-			if (!StringUtils.isEmpty(accessUser) && !ObjectUtils.isEmpty(listmap)) {
+			if (!StringUtils.hasLength(accessUser) && !ObjectUtils.isEmpty(listmap)) {
 				Iterator<Map<String, Object>> iterator = listmap.iterator();
 				Map<String, Object> tempMap;
 				while (iterator.hasNext()) {
