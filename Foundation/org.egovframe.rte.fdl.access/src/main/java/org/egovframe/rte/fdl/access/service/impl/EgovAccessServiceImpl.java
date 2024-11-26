@@ -16,6 +16,7 @@
 package org.egovframe.rte.fdl.access.service.impl;
 
 import org.egovframe.rte.fdl.access.service.EgovAccessService;
+import org.springframework.dao.DataAccessException;
 
 import java.util.List;
 import java.util.Map;
@@ -34,6 +35,7 @@ import java.util.Map;
  * 수정일		수정자				수정내용
  * ----------------------------------------------
  * 2019.10.01	ESFC            최초 생성
+ * 2024.11.26	양재준            광범위한 예외 던지기 수정
  * </pre>
  */
 public class EgovAccessServiceImpl implements EgovAccessService {
@@ -44,11 +46,13 @@ public class EgovAccessServiceImpl implements EgovAccessService {
         this.egovAccessDao = egovAccessDao;
     }
 
-    public List<Map<String, Object>> getAuthorityUser() throws Exception {
+    @Override
+    public List<Map<String, Object>> getAuthorityUser() throws DataAccessException {
         return egovAccessDao.getAuthorityUser();
     }
 
-    public List<Map<String, Object>> getRoleAndUrl() throws Exception {
+    @Override
+    public List<Map<String, Object>> getRoleAndUrl() throws DataAccessException {
         return egovAccessDao.getRoleAndUrl();
     }
 

@@ -18,6 +18,8 @@ package org.egovframe.rte.fdl.access.service;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.dao.DataAccessException;
+
 /**
  * DB기반의 보호된 자원 관리를 지원하는 인터페이스
  *
@@ -32,12 +34,13 @@ import java.util.Map;
  * 수정일		수정자				수정내용
  * ----------------------------------------------
  * 2019.10.01	ESFC            최초 생성
+ * 2024.11.26	양재준            광범위한 예외 던지기 수정
  * </pre>
  */
 public interface EgovAccessService {
 
-    public List<Map<String, Object>> getAuthorityUser() throws Exception;
+    public List<Map<String, Object>> getAuthorityUser() throws DataAccessException;
 
-    public List<Map<String, Object>> getRoleAndUrl() throws Exception;
+    public List<Map<String, Object>> getRoleAndUrl() throws DataAccessException;
 
 }

@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.sql.DataSource;
@@ -40,6 +41,7 @@ import java.util.Map;
  * 수정일		수정자				수정내용
  * ----------------------------------------------
  * 2019.10.01	ESFC            최초 생성
+ * 2024.11.26	양재준            광범위한 예외 던지기 수정
  * </pre>
  */
 public class EgovAccessDao implements ApplicationContextAware {
@@ -76,13 +78,13 @@ public class EgovAccessDao implements ApplicationContextAware {
         this.roleAndUrlQuery = roleAndUrlQuery;
     }
 
-    public List<Map<String, Object>> getAuthorityUser() {
+    public List<Map<String, Object>> getAuthorityUser() throws DataAccessException {
         LOGGER.debug("##### EgovAccessDao getAuthorityUser >>> {} ", getAuthorityUserQuery());
         List<Map<String, Object>> list = this.jdbcTemplate.queryForList(getAuthorityUserQuery());
         return list;
     }
 
-    public List<Map<String, Object>> getRoleAndUrl() {
+    public List<Map<String, Object>> getRoleAndUrl() throws DataAccessException {
         LOGGER.debug("##### EgovAccessDao getRoleAndUrl >>> {} ", getRoleAndUrlQuery());
         List<Map<String, Object>> list = this.jdbcTemplate.queryForList(getRoleAndUrlQuery());
         return list;
