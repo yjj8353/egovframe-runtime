@@ -24,6 +24,7 @@ import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -42,7 +43,7 @@ import java.util.Map;
  * 수정일		수정자				수정내용
  * ----------------------------------------------
  * 2019.10.01	ESFC			최초 생성
- * 2024.11.26	양재준			@Deprecated된 메서드 변경
+ * 2024.11.26	양재준			@Deprecated된 메서드 변경, 클린코드 (null 역참조 방지, 분기문 개선)
  * </pre>
  */
 public class EgovUserDetailsHelper {
@@ -59,7 +60,7 @@ public class EgovUserDetailsHelper {
 	public static List<String> getAuthorities() {
 		List<String> list = new ArrayList<String>();
 		if (RequestContextHolder.getRequestAttributes() == null) {
-			return null;
+			return Collections.emptyList();
 		} else {
 			String accessUser = (String) RequestContextHolder.getRequestAttributes().getAttribute("accessUser", RequestAttributes.SCOPE_SESSION);
 			List<Map<String, Object>> listmap = AuthorityResourceMetadata.getAuthorityList();
@@ -81,11 +82,7 @@ public class EgovUserDetailsHelper {
 		if (RequestContextHolder.getRequestAttributes() == null) {
 			return false;
 		} else {
-			if (RequestContextHolder.getRequestAttributes().getAttribute("loginVO", RequestAttributes.SCOPE_SESSION) == null) {
-				return false;
-			} else {
-				return true;
-			}
+			return RequestContextHolder.getRequestAttributes().getAttribute("loginVO", RequestAttributes.SCOPE_SESSION) != null;
 		}
 	}
 
