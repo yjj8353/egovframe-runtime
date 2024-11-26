@@ -24,7 +24,6 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.egovframe.rte.fdl.cmmn.exception.BaseException;
 import org.egovframe.rte.fdl.excel.EgovExcelMapping;
 import org.egovframe.rte.fdl.excel.EgovExcelService;
 import org.egovframe.rte.fdl.filehandling.EgovFileUtil;
@@ -62,7 +61,7 @@ import java.util.Locale;
  * 2014.05.14  이기하				코드 refactoring 및 mybatis 서비스 추가
  * 2017.02.15  장동한				ES-부적절한 예외 처리[CWE-253, CWE-440, CWE-754]
  * 2020.08.31  ESFC				ES-부적절한 예외 처리[CWE-253, CWE-440, CWE-754]
- * 2024.11.26  양재준				ES-부적절한 자원 해제[CWE-404], 명시적인 @Override 어노테이션 추가
+ * 2024.11.26  양재준				ES-부적절한 자원 해제[CWE-404], 명시적인 @Override 어노테이션 추가, 불필요한 예외 던지기 제거
  * </pre>
  */
 public class EgovExcelServiceImpl implements EgovExcelService, ApplicationContextAware {
@@ -95,9 +94,8 @@ public class EgovExcelServiceImpl implements EgovExcelService, ApplicationContex
     /**
      * ibatis 적용시 설정.
      * @param sqlMapClient
-     * @throws Exception
      */
-    public void setSqlMapClient(SqlMapClient sqlMapClient) throws Exception {
+    public void setSqlMapClient(SqlMapClient sqlMapClient) {
         this.sqlMapClient = sqlMapClient;
         dao = new EgovExcelServiceDAO(this.sqlMapClient);
     }
@@ -105,9 +103,8 @@ public class EgovExcelServiceImpl implements EgovExcelService, ApplicationContex
     /**
      * mybatis 적용시 설정.
      * @param sqlSessionTemplate
-     * @throws Exception
      */
-	public void setSqlSessionTemplate(SqlSessionTemplate sqlSessionTemplate) throws Exception {
+	public void setSqlSessionTemplate(SqlSessionTemplate sqlSessionTemplate) {
 		this.sqlSessionTemplate = sqlSessionTemplate;
 		excelBatchMapper = new EgovExcelServiceMapper(this.sqlSessionTemplate);
 	}
@@ -115,9 +112,8 @@ public class EgovExcelServiceImpl implements EgovExcelService, ApplicationContex
     /**
      * Excel Cell과 VO를 mapping 구현 클래스.
      * @param mapClass
-     * @throws Exception
      */
-    public void setMapClass(String mapClass) throws BaseException {
+    public void setMapClass(String mapClass) {
         this.mapClass = mapClass;
         LOGGER.debug("mapClass : {}", mapClass);
     }
@@ -125,9 +121,8 @@ public class EgovExcelServiceImpl implements EgovExcelService, ApplicationContex
     /**
      * Excel Cell과 VO를 mapping 구현 Bean name (mapClass보다 우선함).
      * @param mapBeanName
-     * @throws BaseException
      */
-    public void setMapBeanName(String mapBeanName) throws BaseException {
+    public void setMapBeanName(String mapBeanName) {
         this.mapBeanName = mapBeanName;
         LOGGER.debug("mapBeanName : {}", mapBeanName);
     }
@@ -235,7 +230,7 @@ public class EgovExcelServiceImpl implements EgovExcelService, ApplicationContex
      * @throws Exception
      */
 	@Override
-    public XSSFWorkbook loadWorkbook(String filepath, XSSFWorkbook wb) throws BaseException, IOException {
+    public XSSFWorkbook loadWorkbook(String filepath, XSSFWorkbook wb) throws IOException {
 		try (FileInputStream fis = new FileInputStream(filepath)) {
 			wb = loadWorkbook(fis, wb);
 		} finally {
@@ -298,7 +293,7 @@ public class EgovExcelServiceImpl implements EgovExcelService, ApplicationContex
 	 * @throws Exception
 	 */
 	@Override
-	public Integer uploadExcel(String queryId, Sheet sheet, int start, long commitCnt) throws BaseException, Exception {
+	public Integer uploadExcel(String queryId, Sheet sheet, int start, long commitCnt) throws Exception {
 		LOGGER.debug("sheet.getPhysicalNumberOfRows() : {}", sheet.getPhysicalNumberOfRows());
         Integer rowsAffected = 0;
 		long rowCnt = sheet.getPhysicalNumberOfRows();
@@ -346,7 +341,7 @@ public class EgovExcelServiceImpl implements EgovExcelService, ApplicationContex
 	 * @throws Exception
 	 */
 	@Override
-	public Integer uploadExcel(String queryId, InputStream fileIn, int start, long commitCnt) throws BaseException, Exception {
+	public Integer uploadExcel(String queryId, InputStream fileIn, int start, long commitCnt) throws Exception {
 		Workbook wb = loadWorkbook(fileIn);
 		Sheet sheet = wb.getSheetAt(0);
 		return uploadExcel(queryId, sheet, start, commitCnt);
@@ -363,7 +358,7 @@ public class EgovExcelServiceImpl implements EgovExcelService, ApplicationContex
 	 * @throws Exception
 	 */
 	@Override
-	public Integer uploadExcel(String queryId, InputStream fileIn, int start, long commitCnt, XSSFWorkbook wb) throws BaseException, Exception {
+	public Integer uploadExcel(String queryId, InputStream fileIn, int start, long commitCnt, XSSFWorkbook wb) throws Exception {
 		wb = loadWorkbook(fileIn, wb);
 		Sheet sheet = wb.getSheetAt(0);
 		return uploadExcel(queryId, sheet, start, commitCnt);
@@ -377,7 +372,7 @@ public class EgovExcelServiceImpl implements EgovExcelService, ApplicationContex
 	 * @throws Exception
 	 */
 	@Override
-	public Integer uploadExcel(String queryId, InputStream fileIn) throws BaseException, Exception {
+	public Integer uploadExcel(String queryId, InputStream fileIn) throws Exception {
 		return uploadExcel(queryId, fileIn, 0, 0);
 	}
 
@@ -389,7 +384,7 @@ public class EgovExcelServiceImpl implements EgovExcelService, ApplicationContex
 	 * @throws Exception
 	 */
 	@Override
-	public Integer uploadExcel(String queryId, InputStream fileIn, XSSFWorkbook type) throws BaseException, Exception {
+	public Integer uploadExcel(String queryId, InputStream fileIn, XSSFWorkbook type) throws Exception {
 		return uploadExcel(queryId, fileIn, 0, 0, type);
 	}
 
@@ -405,7 +400,7 @@ public class EgovExcelServiceImpl implements EgovExcelService, ApplicationContex
 	 * @throws Exception
 	 */
 	@Override
-	public Integer uploadExcel(String queryId, InputStream fileIn, short sheetIndex, int start, long commitCnt) throws BaseException, Exception {
+	public Integer uploadExcel(String queryId, InputStream fileIn, short sheetIndex, int start, long commitCnt) throws Exception {
 		Workbook wb = loadWorkbook(fileIn);
 		Sheet sheet = wb.getSheetAt(sheetIndex);
 		return uploadExcel(queryId, sheet, start, commitCnt);
@@ -424,7 +419,7 @@ public class EgovExcelServiceImpl implements EgovExcelService, ApplicationContex
 	 * @throws Exception
 	 */
 	@Override
-	public Integer uploadExcel(String queryId, InputStream fileIn, short sheetIndex, int start, long commitCnt, XSSFWorkbook wb) throws BaseException, Exception {
+	public Integer uploadExcel(String queryId, InputStream fileIn, short sheetIndex, int start, long commitCnt, XSSFWorkbook wb) throws Exception {
 		wb = loadWorkbook(fileIn, wb);
 		Sheet sheet = wb.getSheetAt(sheetIndex);
 		return uploadExcel(queryId, sheet, start, commitCnt);
@@ -442,7 +437,7 @@ public class EgovExcelServiceImpl implements EgovExcelService, ApplicationContex
 	 * @throws Exception
 	 */
 	@Override
-	public Integer uploadExcel(String queryId, InputStream fileIn, String sheetName, int start, long commitCnt) throws BaseException, Exception {
+	public Integer uploadExcel(String queryId, InputStream fileIn, String sheetName, int start, long commitCnt) throws Exception {
 		Workbook wb = loadWorkbook(fileIn);
 		Sheet sheet = wb.getSheet(sheetName);
 		return uploadExcel(queryId, sheet, start, commitCnt);
@@ -461,7 +456,7 @@ public class EgovExcelServiceImpl implements EgovExcelService, ApplicationContex
 	 * @throws Exception
 	 */
 	@Override
-	public Integer uploadExcel(String queryId, InputStream fileIn, String sheetName, int start, long commitCnt, XSSFWorkbook wb) throws BaseException, Exception {
+	public Integer uploadExcel(String queryId, InputStream fileIn, String sheetName, int start, long commitCnt, XSSFWorkbook wb) throws Exception {
 		wb = loadWorkbook(fileIn, wb);
 		Sheet sheet = wb.getSheet(sheetName);
 		return uploadExcel(queryId, sheet, start, commitCnt);
