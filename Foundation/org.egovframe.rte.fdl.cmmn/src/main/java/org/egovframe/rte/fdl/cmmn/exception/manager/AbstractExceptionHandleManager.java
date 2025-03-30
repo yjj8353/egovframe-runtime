@@ -37,6 +37,7 @@ import javax.annotation.Resource;
  * ----------------------------------------------
  * 2009.05.30	Judd Cho			최초 생성
  * 2015.01.31	Vincent Han			코드 품질 개선
+ * 2025.03.30	양재준				코드 품질 개선
  * </pre>
  */
 public abstract class AbstractExceptionHandleManager {
@@ -114,7 +115,7 @@ public abstract class AbstractExceptionHandleManager {
 	 * @return boolean true|false
 	 */
 	public boolean enableMatcher() {
-		return (this.pm == null) ? false : true;
+		return this.pm != null;
 	}
 
 	/**
