@@ -15,10 +15,14 @@
  */
 package org.egovframe.rte.fdl.cryptography.impl.aria;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class AnsiX923Padding implements CryptoPadding {
+	private static final Logger LOGGER = LoggerFactory.getLogger(AnsiX923Padding.class);
 
 	/** 패딩 규칙 이름 */
-	private String name = "ANSI-X.923-Padding";
+	private static final String NAME = "ANSI-X.923-Padding";
 
 	private static final byte PADDING_VALUE = 0x00;
 
@@ -56,21 +60,20 @@ public class AnsiX923Padding implements CryptoPadding {
 	public byte[] removePadding(byte[] source, int blockSize) {
 		byte[] paddingResult = null;
 		boolean isPadding = false;
+
 		// 패딩 된 count를 찾는다.
 		int lastValue = source[source.length - 1];
 		if (lastValue < (blockSize - 1)) {
 			int zeroPaddingCount = lastValue - 1;
 			for (int i = 2; i < (zeroPaddingCount + 2); i++) {
 				if (source[source.length - i] != PADDING_VALUE) {
-					isPadding = false;
 					break;
 				}
 			}
+
 			isPadding = true;
-		} else {
-			// 마지막 값이 block size 보다 클 경우 패딩 된것이 없음.
-			isPadding = false;
 		}
+
 		//padding length 1에 대한 보정 2019.01.02 modify by jdh
 		if (lastValue != 0) {
 			if((blockSize%lastValue) == 1) {
@@ -92,7 +95,7 @@ public class AnsiX923Padding implements CryptoPadding {
 			try {
 				System.arraycopy(source, 0, paddingResult, 0, paddingResult.length);
 			} catch (ArrayIndexOutOfBoundsException ex) {
-				System.out.println("removePadding Exception.....");
+				LOGGER.error("removePadding Exception.....");
 				return source;
 			}
 		} else {
@@ -102,7 +105,7 @@ public class AnsiX923Padding implements CryptoPadding {
 	}
 
 	public String getName() {
-		return name;
+		return NAME;
 	}
 
 }
