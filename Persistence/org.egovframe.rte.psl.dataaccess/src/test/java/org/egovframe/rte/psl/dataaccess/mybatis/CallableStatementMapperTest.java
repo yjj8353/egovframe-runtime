@@ -151,7 +151,7 @@ public class CallableStatementMapperTest extends TestBase {
 			// IN, OUT 또는 INOUT 파라메터 정의
 			Map<String, Object> map = new HashMap<String, Object>();
 			// 현재 시간에서 inCondition 에 해당하는 일자(days)를 뺀 시간을 되돌려 줄 것임.
-			map.put("inCondition", new Integer(1));
+			map.put("inCondition", Integer.valueOf(1));
 			// 결과는 해당 map 의 outResult 라는 변수로 담겨 올 것임.
 
 			// procedure call
@@ -169,7 +169,7 @@ public class CallableStatementMapperTest extends TestBase {
 			// IN, OUT 또는 INOUT 파라메터 정의
 			Map<String, Object> map = new HashMap<String, Object>();
 			// 현재 시간에서 inCondition 에 해당하는 일자(days)를 뺀 시간을 되돌려 줄 것임.
-			map.put("inCondition", new Integer(1));
+			map.put("inCondition", Integer.valueOf(1));
 			// 결과는 해당 map 의 outResult 라는 변수로 담겨 올 것임.
 
 			// procedure call
