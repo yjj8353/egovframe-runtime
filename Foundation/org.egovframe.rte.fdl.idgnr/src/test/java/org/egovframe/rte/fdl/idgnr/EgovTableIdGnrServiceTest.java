@@ -381,7 +381,7 @@ public class EgovTableIdGnrServiceTest {
 		for (int i = 1; i <= testCount; i++) {
 			String id = idsTestSimpleRequestIdsSize10.getNextStringId();
 			System.out.println("##### testGetStringIdFromLongId id >>> " + id);
-			assertEquals("The returned id was not what was expected.", new Integer(i).toString(), id);
+			assertEquals("The returned id was not what was expected.", Integer.valueOf(i).toString(), id);
 		}
 
 		assertEquals("The next_id column in the database did not have the expected value.", testCount + 1, peekNextLongId("test"));

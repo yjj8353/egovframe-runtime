@@ -90,7 +90,7 @@ public class EgovNumericUtil {
 		}
 
 		try {
-			Double db = new Double(source);
+			Double db = Double.valueOf(source);
 			return !db.isNaN();
 		} catch (NumberFormatException ex) {
 			return false;

@@ -46,23 +46,23 @@ public class PropertyServiceBasicTest {
 
         assertEquals("1234", propertyService.getString("AAAA"));
 
-        assertEquals(new Double(1234), new Double(propertyService.getDouble("number.double")));
+        assertEquals(Double.valueOf(1234), Double.valueOf(propertyService.getDouble("number.double")));
 
-        assertEquals(new Float(1234), new Float(propertyService.getFloat("number.float")));
+        assertEquals(Float.valueOf(1234), Float.valueOf(propertyService.getFloat("number.float")));
 
-        assertEquals(new Integer(1234), new Integer(propertyService.getInt("number.int")));
+        assertEquals(Integer.valueOf(1234), Integer.valueOf(propertyService.getInt("number.int")));
 
-        assertEquals(new Long(1234), new Long(propertyService.getLong("number.long")));
+        assertEquals(Long.valueOf(1234), Long.valueOf(propertyService.getLong("number.long")));
 
         assertNotNull(propertyService.getString("AAAA", ""));
 
-        assertEquals(new Double(1234), new Double(propertyService.getDouble("number.double", 123.4)));
+        assertEquals(Double.valueOf(1234), Double.valueOf(propertyService.getDouble("number.double", 123.4)));
 
-        assertEquals(new Float(1234), new Float(propertyService.getFloat("number.float", (float) 123.4)));
+        assertEquals(Float.valueOf(1234), Float.valueOf(propertyService.getFloat("number.float", (float) 123.4)));
 
-        assertEquals(new Integer(1234), new Integer(propertyService.getInt("number.int", 123)));
+        assertEquals(Integer.valueOf(1234), Integer.valueOf(propertyService.getInt("number.int", 123)));
 
-        assertEquals(new Long(1234), new Long(propertyService.getLong("number.long", 1234)));
+        assertEquals(Long.valueOf(1234), Long.valueOf(propertyService.getLong("number.long", 1234)));
 
         assertNotNull(propertyService.getKeys());
 
