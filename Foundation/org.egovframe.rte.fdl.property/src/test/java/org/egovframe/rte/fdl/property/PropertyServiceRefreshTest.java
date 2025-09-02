@@ -51,10 +51,10 @@ public class PropertyServiceRefreshTest {
 
         assertEquals(4, propertyService.getStringArray("tokens_on_multiple_lines").length);
         assertEquals("first token refresh", propertyService.getString("tokens_on_multiple_lines"));
-        assertEquals(new Double(1234), new Double(propertyService.getDouble("number.double")));
+        assertEquals(Double.valueOf(1234), Double.valueOf(propertyService.getDouble("number.double")));
         propertyService.refreshPropertyFiles();
         assertEquals("first token refresh", propertyService.getString("tokens_on_multiple_lines"));
-        assertEquals(new Double(1234), new Double(propertyService.getDouble("number.double")));
+        assertEquals(Double.valueOf(1234), Double.valueOf(propertyService.getDouble("number.double")));
     }
 
 }

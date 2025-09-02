@@ -31,7 +31,7 @@
 	
 	<bean id="egov.ariaCryptoService" class="org.egovframe.rte.fdl.cryptography.impl.EgovARIACryptoServiceImpl">
 		<property name="passwordEncoder" ref="egov.passwordEncoder"/>
-		<property name="blockSize" value="#{new Integer(egovPropertyConfigurer.getString('Globals.db.CryptoBlockSize'))}"/>
+		<property name="blockSize" value="#{Integer.valueOf(egovPropertyConfigurer.getString('Globals.db.CryptoBlockSize'))}"/>
 	</bean>
 
 	<bean id="egov.envCryptoService" class="org.egovframe.rte.fdl.cryptography.impl.EgovEnvCryptoServiceImpl"  init-method="init">
@@ -43,7 +43,7 @@
 		<property name="cryptoAlgorithm" value="#{egovPropertyConfigurer.getString('Globals.db.CryptoAlgorithm')}"/>
 		<property name="cyptoAlgorithmKey" value="#{egovPropertyConfigurer.getString('Globals.db.CryptoAlgorithmKey')}"/>
 		<property name="cyptoAlgorithmKeyHash" value="#{egovPropertyConfigurer.getString('Globals.db.CryptoAlgorithmKeyHash')}"/>
-		<property name="cryptoBlockSize" value="#{new Integer(egovPropertyConfigurer.getString('Globals.db.CryptoBlockSize'))}"/>
+		<property name="cryptoBlockSize" value="#{Integer.valueOf(egovPropertyConfigurer.getString('Globals.db.CryptoBlockSize'))}"/>
 	</bean>
 
 </beans> 
