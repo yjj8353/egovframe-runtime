@@ -271,7 +271,7 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>org.egovframe.rte</groupId>
+            <groupId>org.springmodules</groupId>
             <artifactId>spring-modules-validation</artifactId>
             <version>0.9</version>
             <scope>test</scope>

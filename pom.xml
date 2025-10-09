@@ -43,7 +43,6 @@
 		<!-- Presentation -->
 		<module>Presentation/org.egovframe.rte.ptl.mvc</module>
 		<module>Presentation/org.egovframe.rte.ptl.reactive</module>
-		<module>Presentation/spring-modules-validation</module>
 
 	</modules>
 
