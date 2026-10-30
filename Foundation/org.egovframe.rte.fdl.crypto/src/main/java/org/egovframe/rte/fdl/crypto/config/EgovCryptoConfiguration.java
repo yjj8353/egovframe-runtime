@@ -21,6 +21,8 @@ import org.egovframe.rte.fdl.crypto.impl.EgovDigestServiceImpl;
 import org.egovframe.rte.fdl.crypto.impl.EgovEnvCryptoServiceImpl;
 import org.egovframe.rte.fdl.crypto.impl.EgovGeneralCryptoServiceImpl;
 import org.egovframe.rte.fdl.property.impl.EgovPropertyServiceImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
@@ -44,13 +46,17 @@ import java.util.Set;
 @Configuration
 public class EgovCryptoConfiguration {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(EgovCryptoConfiguration.class);
+    private final ApplicationContext applicationContext;
+
     @Value("${Globals.CryptoConfigPath:}")
     private String cryptoConfigPath;
 
-    @Autowired
-    private ApplicationContext applicationContext;
-
     private EgovCryptoConfig cryptoConfig;
+
+    EgovCryptoConfiguration(@Autowired ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
+    }
 
     /**
      * 설정 파일 리더 Bean. Globals.CryptoConfigPath는 서비스의 globals.properties에서 읽으며,
@@ -92,7 +98,7 @@ public class EgovCryptoConfiguration {
     public EgovEnvCryptoServiceImpl egovEnvCryptoService(EgovCryptoConfig cryptoConfig) {
         String algorithmKey = cryptoConfig.getAlgorithmKey();
         if ("egovframe".equals(algorithmKey)) {
-            System.err.println("[EgovFramework Fatal ERROR] Since a fatal security threat may occur, " +
+            LOGGER.error("[EgovFramework Fatal ERROR] Since a fatal security threat may occur, " +
                     "the Crypto service default algorithm Key=\"egovframe\" must be changed to another keyword. " +
                     "For more details see https://www.egovframe.go.kr/wiki/doku.php?id=egovframework:rte5.0:fdl:crypto");
         }

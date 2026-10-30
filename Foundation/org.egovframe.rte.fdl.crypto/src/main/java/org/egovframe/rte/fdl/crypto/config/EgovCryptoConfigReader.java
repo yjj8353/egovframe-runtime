@@ -17,7 +17,7 @@ package org.egovframe.rte.fdl.crypto.config;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 
@@ -47,12 +47,21 @@ public class EgovCryptoConfigReader {
     private final String configPath;
     private final ResourceLoader resourceLoader;
 
+    /**
+     * 기본 생성자.
+     * 설정 파일 경로와 ResourceLoader 없이 생성하며,
+     * readConfig() 호출 시 기본 경로(DEFAULT_CONFIG_PATH)의 설정 파일을 읽는다.
+     */
     public EgovCryptoConfigReader() {
         this(null, null);
     }
 
     /**
      * globals.properties 등에서 지정한 설정 파일 경로로 리더 생성
+     * @param configPath 설정 파일 경로 (classpath:, file: 접두어 또는 일반 경로).
+     *                   null 이거나 공백이면 기본 경로(DEFAULT_CONFIG_PATH)를 사용한다.
+     * @param resourceLoader 설정 파일 로드 시 사용할 Spring ResourceLoader.
+     *                       ResourceLoader가 존재하는 경우 최우선적으로 사용한다.
      */
     public EgovCryptoConfigReader(String configPath, ResourceLoader resourceLoader) {
         this.configPath = (configPath != null && !configPath.trim().isEmpty()) ? configPath.trim() : null;
@@ -60,60 +69,84 @@ public class EgovCryptoConfigReader {
     }
 
     /**
-     * 지정된 경로의 설정 파일을 읽어 EgovCryptoConfig 객체를 반환.
-     * ResourceLoader가 있으면 먼저 사용(테스트 등 Spring 컨텍스트에서 해당 컨텍스트 classpath 기준으로 로드),
-     * 없거나 실패 시 context classloader → 파일 순으로 시도하고, 모두 실패 시 기본 설정을 반환한다.
+     * 설정 파일을 읽어 EgovCryptoConfig 객체를 반환.
+     * 지정 경로 → 기본 경로(DEFAULT_CONFIG_PATH) 순으로 찾고, 각 경로는
+     * ResourceLoader → DefaultResourceLoader 순으로 시도한다. 모두 실패하면 기본 설정을 반환한다.
      */
     public EgovCryptoConfig readConfig() {
-        String path = configPath != null ? configPath : DEFAULT_CONFIG_PATH;
         InputStream inputStream = null;
-        String triedPath = path;
-		// 2026.02.28 KISA 보안취약점 조치
-        try {
-            inputStream = getInputStream(path);
-            if (inputStream == null && resourceLoader != null) {
-                String resourcePath = toResourcePath(path);
-                Resource resource = resourceLoader.getResource(resourcePath);
-                if (resource.exists()) {
-                    inputStream = resource.getInputStream();
-                    triedPath = resourcePath;
-                }
-            }
+
+        // 1. 지정 경로의 설정 파일 로드
+        if (configPath != null) {
+            inputStream = openStream(configPath);
             if (inputStream == null) {
-                inputStream = getInputStream(DEFAULT_CONFIG_PATH);
-                triedPath = DEFAULT_CONFIG_PATH;
+                LOGGER.warn("Crypto configuration file not found: {}, fall back to default path", configPath);
             }
-            if (inputStream == null && resourceLoader != null) {
-                Resource resource = resourceLoader.getResource(CLASSPATH_PREFIX + DEFAULT_CONFIG_PATH);
-                if (resource.exists()) {
-                    inputStream = resource.getInputStream();
-                    triedPath = CLASSPATH_PREFIX + DEFAULT_CONFIG_PATH;
-                }
-            }
-            if (inputStream != null) {
-                Properties props = new Properties();
-                try (InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8)) {
-                    props.load(reader);
-                }
-                // 파일에 명시되지 않은 키(crypto, algorithm 등)는 기본값을 유지하도록
-                // 빈 인스턴스가 아니라 createDefaultConfig()를 베이스로 덮어쓴다.
-                return mapPropertiesToBean(props, createDefaultConfig());
-            }
-        } catch (IOException e) {
-            LOGGER.debug("Failed to read crypto configuration file, use default config. tried: {} - {}", triedPath, e.getMessage());
         }
-        LOGGER.debug("Using default crypto configuration (no file found for path: {})", path);
+
+        // 2. 지정 경로가 없거나 찾지 못한 경우 기본 경로의 설정 파일 로드
+        if (inputStream == null) {
+            inputStream = openStream(DEFAULT_CONFIG_PATH);
+        }
+
+        // 3. 설정 파일을 찾은 경우 UTF-8로 읽어 EgovCryptoConfig로 변환
+        if (inputStream != null) {
+            try (InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8)) {
+                Properties props = new Properties();
+                props.load(reader);
+                return mapPropertiesToBean(props, createDefaultConfig());
+            } catch (IOException e) {
+                LOGGER.warn("Failed to read crypto configuration file, use default config - {}", e.getMessage());
+            }
+        }
+
+        // 4. 모두 실패한 경우 기본 설정 반환
+        LOGGER.warn("Using default crypto configuration");
         return createDefaultConfig();
     }
 
+    // 지정한 경로의 파일에 대한 InputStream을 연다
+    private InputStream openStream(String path) {
+        String location = toResourcePath(path);
+
+        // 지정한 ResourceLoader가 있으면 해당 객체를 사용, 없으면 DefaultResourceLoader를 사용함
+        InputStream is = openStreamWithResourceLoader(resourceLoader, location);
+        return (is != null) ? is : openStreamWithResourceLoader(new DefaultResourceLoader(), location);
+    }
+
+    // ResourceLoader를 이용해 지정한 경로의 파일에 대한 InputStream을 연다
+    @SuppressWarnings("null") // path는 null이 될 수 없으므로, getResource에 대한 null 타입 경고를 무시함
+    private static InputStream openStreamWithResourceLoader(ResourceLoader loader, String path) {
+        if (loader == null) return null;
+
+        try {
+            Resource resource = loader.getResource(path);
+            return resource.isReadable() ? resource.getInputStream() : null;
+        } catch (IOException e) {
+            LOGGER.debug("Failed to open crypto configuration file: {} - {}", path, e.getMessage());
+            return null;
+        }
+    }
+
+    // 접두어가 없으면 파일이 실제로 존재할 때 file:, 아니면 classpath:로 해석한다
     private static String toResourcePath(String path) {
-        if (path.startsWith(CLASSPATH_PREFIX) || path.startsWith(FILE_PREFIX)) {
-            return path;
+        // classpath:
+        if (path.startsWith(CLASSPATH_PREFIX)) {
+            // classpath: 문자열을 제거한 결과의 앞 뒤 공백을 모두 제거
+            return CLASSPATH_PREFIX + path.substring(CLASSPATH_PREFIX.length()).trim();
         }
+
+        // file:
+        if (path.startsWith(FILE_PREFIX)) {
+            // file: 문자열을 제거한 결과의 앞 뒤 공백을 모두 제거
+            return FILE_PREFIX + path.substring(FILE_PREFIX.length()).trim();
+        }
+
         File f = new File(path);
-        if (f.isAbsolute() && f.exists()) {
-            return FILE_PREFIX + path;
+        if (f.isFile()) {
+            return f.toURI().toString(); // "file:/..." (Windows 경로도 안전)
         }
+
         return CLASSPATH_PREFIX + path;
     }
 
@@ -122,8 +155,11 @@ public class EgovCryptoConfigReader {
     private static EgovCryptoConfig mapPropertiesToBean(Properties props, EgovCryptoConfig bean) {
         for (String key : props.stringPropertyNames()) {
             String value = props.getProperty(key);
-            if (value == null) continue;
+
+            // value가 null 이거나 key가 빈 문자열이면 예외가 날 수 있으므로 건너뜀
+            if (value == null || key.isEmpty()) continue;
             String setterName = "set" + key.substring(0, 1).toUpperCase(Locale.ROOT) + key.substring(1);
+
             // 2026.02.28 KISA 보안취약점 조치
             try {
                 Method setter = findSetter(bean.getClass(), setterName);
@@ -142,6 +178,7 @@ public class EgovCryptoConfigReader {
         return bean;
     }
 
+    // setter 메서드를 찾아서 반환
     private static Method findSetter(Class<?> beanClass, String setterName) {
         for (Method m : beanClass.getMethods()) {
             if (m.getName().equals(setterName) && m.getParameterCount() == 1) {
@@ -151,79 +188,32 @@ public class EgovCryptoConfigReader {
         return null;
     }
 
+    // 값(value)를 지정한 형식(targetType)으로 형변환 하여 반환
     private static Object convertValue(String value, Class<?> targetType) {
         if (targetType == boolean.class || targetType == Boolean.class) {
-            return Boolean.parseBoolean(value.trim());
+            /*
+             * boolean 값은 문자열에 오타가 있으면 의도하지 않은 값이 설정될 수 있음
+             * (EX. "ture" 문자열이 value로 들어가 있으면 이 값은 true가 아니라 false가 됨)
+             * 따라서 의도하지 않은 동작을 줄이기 위해, 오타가 난 경우 예외를 발생시킴
+             */
+            String v = value.trim();
+            if (!"true".equalsIgnoreCase(v) && !"false".equalsIgnoreCase(v)) {
+                throw new IllegalArgumentException("Not a boolean: " + value);
+            }
+            
+            return Boolean.parseBoolean(v);
         }
+
         if (targetType == int.class || targetType == Integer.class) {
             return Integer.parseInt(value.trim());
         }
-        return value;
+
+        // Properties는 값의 앞쪽 공백만 제거하므로, 의도하지 않은 뒤쪽 공백이 남지 않도록 제거함
+        return value.trim();
     }
 
-    /**
-     * 경로에 따라 classpath 리소스 또는 파일 시스템에서 InputStream 반환. 없으면 null.
-     */
-    private static InputStream getInputStream(String path) throws IOException {
-        if (path == null || path.isEmpty()) return null;
-        if (path.startsWith(CLASSPATH_PREFIX)) {
-            String resourcePath = path.substring(CLASSPATH_PREFIX.length()).trim();
-            ClassLoader cl = Thread.currentThread().getContextClassLoader();
-            // 2026.02.28 KISA 보안취약점 조치
-            if (cl != null) {
-                InputStream is = null;
-                boolean returned = false;
-                try {
-                    is = cl.getResourceAsStream(resourcePath);
-                    if (is != null) {
-                        returned = true;
-                        return is;
-                    }
-                } finally {
-                    if (!returned && is != null) {
-                        try {
-                            is.close();
-                        } catch (IOException e) {
-                            LOGGER.debug("Error closing stream while reading security config: {}", path, e);
-                        }
-                    }
-                }
-            }
-            // 2026.02.28 KISA 보안취약점 조치
-            try {
-                return new ClassPathResource(resourcePath).getInputStream();
-            } catch (IOException e) {
-                LOGGER.debug("Failed to read security configuration file: {}", path, e);
-                return null;
-            }
-        }
-        if (path.startsWith(FILE_PREFIX)) {
-            String filePath = path.substring(FILE_PREFIX.length()).trim();
-            File file = new File(filePath);
-            if (file.isFile() && file.canRead()) return new FileInputStream(file);
-            return null;
-        }
-        File file = new File(path);
-        if (file.isFile() && file.canRead()) {
-            return new FileInputStream(file);
-        }
-        ClassLoader cl = Thread.currentThread().getContextClassLoader();
-        if (cl != null) {
-            return cl.getResourceAsStream(path);
-        }
-        // 2026.02.28 KISA 보안취약점 조치
-        try {
-            return new ClassPathResource(path).getInputStream();
-        } catch (IOException e) {
-            LOGGER.debug("Failed to read security configuration file: {}", path, e);
-            return null;
-        }
-    }
-
-    /**
-     * 기본 설정 객체를 생성
-     */
-    private EgovCryptoConfig createDefaultConfig() {
+    // 기본 설정 객체를 생성
+    private static EgovCryptoConfig createDefaultConfig() {
         EgovCryptoConfig config = new EgovCryptoConfig();
         config.setId("egovCryptoConfig");
         config.setInitial(true);
@@ -234,8 +224,6 @@ public class EgovCryptoConfigReader {
         config.setCryptoBlockSize(1024);
         config.setCryptoPropertyLocation("classpath:/egovframework/egovProps/globals.properties");
         config.setPlainDigest(false);
-        LOGGER.debug("Use Basic Crypto Configuration");
         return config;
     }
-
 }
